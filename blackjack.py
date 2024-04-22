@@ -111,4 +111,3 @@ def draw_value(title: str, values: tp.Dict[str, np.ndarray]) -> go.Figure:
     fig.layout.scene2.xaxis.nticks = 10
     fig.layout.scene2.yaxis.nticks = 10
 
-
