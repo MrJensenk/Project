@@ -110,8 +110,5 @@ def draw_value(title: str, values: tp.Dict[str, np.ndarray]) -> go.Figure:
                              z=values['ace'], colorscale='YlGnBu'), col=2, row=1)
     fig.layout.scene2.xaxis.nticks = 10
     fig.layout.scene2.yaxis.nticks = 10
-    fig.update_layout(scene_camera=camera, title=title,
-                      margin=dict(r=25, l=25, b=10, t=80),
-                      width=1000,
-                      showlegend=False)
+
 
