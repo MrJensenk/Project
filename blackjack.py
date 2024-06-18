@@ -1,16 +1,17 @@
 import math
+import random
 import shutil
 import typing as tp
 from collections import deque
 from pathlib import Path
-import random
+
 import cv2
 import gymnasium as gym
 import imageio
 import numpy as np
+import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
-import plotly.express as px
 from plotly.subplots import make_subplots
 from tqdm import tqdm
 
@@ -198,7 +199,6 @@ def estimate_value_function(num_episodes: int = 300_000, frame_step: int = 3_000
 
 estimate_value_function()
 
-
 q_grid: tp.Dict[str, np.ndarray] = {
     'no_ace': np.zeros((10, 10, 2), dtype=float),
     'ace': np.zeros((10, 10, 2), dtype=float)
@@ -238,7 +238,6 @@ def estimate_q_function(num_episodes: int = 10_000_000, frame_step: int = 100_00
         else:
             step_coeff = min(max(ep_idx / n_epochs_of_decays, 0.0), 1.0)
             eps_greedy_coeff = eps_from * math.exp(math.log(eps_to / eps_from) * step_coeff)
-            # eps_greedy_coeff = eps_from + (eps_to - eps_from) * step_coeff
 
         obs, info = env.reset()
         done = False
@@ -306,3 +305,32 @@ def estimate_q_function(num_episodes: int = 10_000_000, frame_step: int = 100_00
 
 
 estimate_q_function()
+policy_grids['no_ace'] = q_grid['no_ace'].argmax(axis=2)
+policy_grids['ace'] = q_grid['ace'].argmax(axis=2)
+
+new_policy_reward = estimate_policy(out_file_name='optimal_policy_game.mp4')
+new_policy_reward
+
+fig = make_subplots(rows=1, cols=2, subplot_titles=("No ace", "Ace"))
+dealer_axis = np.linspace(1, 10, 10)
+colorscale = [[0, "rgb(150,150,150)"], [1, "rgb(155,230,155)"]]
+
+annotations = ['Stick', 'Hit']
+policy_texts = {
+    'no_ace': [[annotations[policy_grids['no_ace'][i, j]] for j in range(10)] for i in range(10)],
+    'ace': [[annotations[policy_grids['ace'][i, j]] for j in range(10)] for i in range(10)]
+}
+
+fig.add_trace(go.Heatmap(x=player_scores_axis, y=card_names, z=policy_grids['no_ace'],
+                         colorscale=colorscale,
+                         text=policy_texts['no_ace'], texttemplate="%{text}"), 1, 1)
+fig.add_trace(go.Heatmap(x=player_scores_axis, y=card_names, z=policy_grids['ace'],
+                         colorscale=colorscale,
+                         text=policy_texts['ace'], texttemplate="%{text}"), 1, 2)
+fig.update_layout(width=800, height=400)
+fig.update_scenes(xaxis_title_text='Dealer', yaxis_title_text='Player')
+fig.update_traces(showscale=False)
+fig.update_xaxes(showline=True, linewidth=1, title='Player scores', dtick=1)
+fig.update_yaxes(showline=True, linewidth=1, title='Dealer card', dtick=1)
+
+fig.show()
